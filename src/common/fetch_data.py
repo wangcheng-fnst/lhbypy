@@ -1,4 +1,5 @@
 from this import d
+from unicodedata import name
 import base as b
 import akshare as ak
 
@@ -18,7 +19,13 @@ def get_ashare_data(code, start, end):
         code='sz'+code
     start=''.join(start.split('-'))
     end=''.join(end.split('-'))
-    df = ak.stock_zh_a_daily(symbol='sh000001', start_date=start, end_date=end, adjust='hfq')
+    df = ak.stock_zh_a_hist(symbol='sh000001', start_date=start, end_date=end, adjust='hfq')
+    # 日期    开盘    收盘    最高    最低      成交量     成交额    振幅  涨跌幅  涨跌额 换手率
+    name_dist = {'日期':'date','开盘':'open','收盘':'close',
+                '最高':'high','最低':'low',
+                '成交量':'charge','成交额':'amount','振幅':'amplitude',
+                '涨跌幅':'quote_change','涨跌额':'up_down','换手率':'change_rate'}
+    df.rename(columns=name_dist, inplace=True)
     return df
 
 def get_codes():

@@ -29,8 +29,8 @@ def adx_strategy(df,ma1=13,ma2=55,ma3=89,adx=25):
     return df.Buy_Total_Return.fillna(0)
 
 def get_data_from_db(code):
-    data=b.pd.read_sql(f"select * from stock_k_data where code='{code}'",b.engine)
+    data=b.pd.read_sql(f"select * from stock_ak_data where code='{code}'",b.engine)
     return data;
 
-df = adx_strategy(df=get_data_from_db('600320'))
-pf.create_simple_tear_sheet(df.tz_localize('UTC'))
+df = adx_strategy(df=get_data_from_db('300002'))
+pf.create_simple_tear_sheet(df)

@@ -56,6 +56,7 @@ def process():
         # data = get_data(code=stock[0],start=start,end=end)
         data = get_akshare_data(code=stock[0],start=start,end=end)
         insert_sql(code=stock[0],data=data, db_name='stock_ak_data')
+    print("数据写入完毕")
     pass
 
 def add():
