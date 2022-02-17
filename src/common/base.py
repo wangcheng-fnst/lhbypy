@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
-from pyecharts import Bar
+from pyecharts.charts import Bar
 import pymysql
 import pyfolio as pf
 
