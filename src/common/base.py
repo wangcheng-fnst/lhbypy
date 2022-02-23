@@ -23,13 +23,15 @@ engine = create_engine('mysql+pymysql://root:Root@123456@42.192.15.190:3306/db')
 
 def get_his_data():
     pass
-#   ts.get_hist_data(start='2022-01-05', end='2022-01-06')
-#   ts.get_hists(start='2022-01-05', end='2022-01-06')
-    # df = ts.get_sme_classified()
-    # df = ts.get_concepts()
-    # df = ts.top_list()
-    # df = ts.moneyflow_hsgt()
-    # df = ts.bar(code='600848',start_date='2022-01-05', end_date='2022-01-06')
+    # ts.get_hist_data(start='2022-01-05', end='2022-01-06')
+    # df = ts.get_sme_classified() //获取中小板股票
+     #df = ts.get_concepts() //获取概念板块行情数据
+    # df = ts.top_list() //获取每日龙虎榜列表
+    # df = ts.moneyflow_hsgt() //获取沪深港通资金流向
+    # df = ts.bar(code='600848', conn=ts.get_apis(), freq='1min') // 1分钟级别的数据
+
+
+ts.get_apis()
     # df = ts.get_today_ticks(code='600848')
     # ts.get_today_all()
     # ts.get_k_data(code='600848',start='2022-01-05', end='2022-01-06')
