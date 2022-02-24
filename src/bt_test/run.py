@@ -1,13 +1,16 @@
-import random
-
 import backtrader as bt
 import pandas as pd
-
+import os
 import data as data
-import strategys as st
-import dto
 from backtrader_plotting import Bokeh
 
+html_path = '../../work/html/'
+csv_path = '../../work/csv/'
+if not os.path.exists(html_path):
+    os.makedirs(html_path)
+
+if not os.path.exists(csv_path):
+    os.makedirs(csv_path)
 
 # 对指定股票进行指定的策略回测
 def run_back_test(code, strategy, strategy_dtos, res, to_html_file=False):
@@ -57,7 +60,7 @@ def run_back_test(code, strategy, strategy_dtos, res, to_html_file=False):
 
 # 保存结果到html
 def res_to_html_file(cerebro, code):
-    filename = '../../work/' + code + ".html"
+    filename = html_path + code + ".html"
 
     plotconfig = {
         'r:^Broker.*': dict(
@@ -81,7 +84,7 @@ def res_to_file(res, name):
 
     out_df = pd.DataFrame(list(zip(codes, summaries, win_counts, lose_counts, trade_counts)),
                           columns=['code', 'summary', 'win_count', 'lose_count', 'trade_count'])
-    out_df.to_csv('../../work/csv/'+name + '.csv')
+    out_df.to_csv(csv_path + name + '.csv')
 
 
 def run_with_html(code, strategy, strategy_dtos, res):
