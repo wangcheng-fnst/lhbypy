@@ -246,7 +246,7 @@ class ZTBStrategy(BaseStrategy):
     params = dict(
         p=dto.BaseStrategyDto('600600','zt-1'),
         n=2,
-        # stock_data=None,
+        stock_data=None,
         item={}
     )
     def __init__(self):
