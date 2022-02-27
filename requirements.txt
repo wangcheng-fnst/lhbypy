@@ -10,3 +10,4 @@ pyfolio
 akshare
 backtrader
 backtrader_plotting
+pytdx

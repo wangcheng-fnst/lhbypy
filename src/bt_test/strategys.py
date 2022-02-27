@@ -118,6 +118,8 @@ class BaseStrategy(bt.Strategy):
         self.win_count = 0
         self.lose_count = 0
         self.trade_count = 0
+        # 结果
+        self.result = None
 
     def log(self, txt, dt=None):
         # 记录策略的执行日志
@@ -176,11 +178,21 @@ class BaseStrategy(bt.Strategy):
         self.log('交易利润, 毛利润 %.2f, 净利润 %.2f' %
                  (trade.pnl, trade.pnlcomm))
 
+    def stop(self):
+        self.result = '股票：%s, 策略：%s,最后资金：%.2f，交易总次数：%i，盈利次数：%i，亏损次数：%i' % (
+            self.params.p.code, self.p.p.name, self.broker.getvalue(), self.trade_count, self.win_count, self.lose_count)
+        # self.params.res = self.result
+
+        res = dto.BtResultDto(self.params.p.code, self.result, self.win_count, self.lose_count,
+                              self.trade_count, self.p.p.begin_cash, self.broker.getvalue())
+        self.params.item.update({self.params.p.get_key(): res})
+
+
 
 # 均线多头策略
 class JXDTStrategy(BaseStrategy):
     params = dict(
-        p=dto.JXDto('600600', 5, 10, 20, 30, 'jx'),
+        p=dto.JXDto('600600', 5, 10, 20, 30, 'jx', 10000),
 
         item={}
     )
@@ -194,16 +206,8 @@ class JXDTStrategy(BaseStrategy):
         self.ma3 = bt.talib.SMA(self.dataclose, timeperiod=self.params.p.ma3)
         self.ma4 = bt.talib.SMA(self.dataclose, timeperiod=self.params.p.ma4)
         self.name = self.params.p.name
-        self.result = None
         BaseStrategy.__init__(self)
 
-    def stop(self):
-        self.result = '股票：%s, 策略：%s,最后资金：%.2f，交易总次数：%i，盈利次数：%i，亏损次数：%i' % (
-            self.params.p.code, self.name, self.broker.getvalue(), self.trade_count, self.win_count, self.lose_count)
-        # self.params.res = self.result
-
-        res = dto.BtResultDto(self.params.p.code, self.result, self.win_count, self.lose_count)
-        self.params.item.update({self.params.p.get_key(): res})
 
     def next(self):
         # 如果有订单正在挂起，不操作
@@ -242,32 +246,24 @@ class JXDTStrategy(BaseStrategy):
 
 
 # 涨停板策略连续n天涨停后买入，买入后开板就卖出
+# n = 2: 昨天和今天都涨停，明天如果不是一字板，开盘买入， 后天如果不是一字板，则卖出
 class ZTBStrategy(BaseStrategy):
     params = dict(
-        p=dto.BaseStrategyDto('600600','zt-1'),
+        p=dto.BaseStrategyDto('600600','zt-1',10000),
         n=2,
         stock_data=None,
         item={}
     )
     def __init__(self):
         BaseStrategy.__init__(self)
-        self.result = None
+
         self.cash = None
         self.end_date = self.data0.datetime.date(-1)
         # self.zt = s
 
     def notify_cashvalue(self, cash, value):
         self.cash = cash
-        # if (cash != value):
-        #     self.log('cash=%.2f,value=%.2f' % (cash, value))
 
-    def stop(self):
-        self.result = '股票：%s, 策略：%s,最后资金：%.2f，交易总次数：%i，盈利次数：%i，亏损次数：%i' % (
-            self.params.p.code, self.p.p.name, self.broker.getvalue(), self.trade_count, self.win_count, self.lose_count)
-        # self.params.res = self.result
-
-        res = dto.BtResultDto(self.params.p.code, self.result, self.win_count, self.lose_count, self.trade_count)
-        self.params.item.update({self.params.p.get_key(): res})
 
     def next(self):
         # 0 回测对当前时间,
@@ -291,10 +287,12 @@ class ZTBStrategy(BaseStrategy):
             flag = False
 
             for i in range(1, self.p.n+1):
-                pre_date = self.data0.datetime.date(0 - i)
-                pp_date = self.data0.datetime.date(0 - i - 1)
+                pre_index = 0 - i
+                pp_index = 0 - i - 1
+                pre_date = self.data0.datetime.date(pre_index)
+                pp_date = self.data0.datetime.date(pp_index)
                 if cur_date > pre_date > pp_date:
-                    flag = (self.data0.close[0] - self.data0.close[0 - i])/self.data0.close[0 - i] >= 0.099
+                    flag = (self.data0.close[1 - i] - self.data0.close[0 - i])/self.data0.close[0 - i] >= 0.099
                     if not flag:
                         break
             # 达到条件了，并且不是一字涨停可以买入了
@@ -306,14 +304,14 @@ class ZTBStrategy(BaseStrategy):
                     size = int((cash - cash * 0.0005) / buy_price/100) * 100
                     # 跟踪订单避免重复
                     self.order = self.buy(data=self.data0,size=size, price=buy_price,exectype=bt.Order.Market)
-                    self.log('买入单, %.2f,前天价格：c=%.2f,当前现金:%.2f,买价:%.2f，股数:%.2f' % (
-                            buy_price, self.datas[0].close[-1], cash, buy_price, size))
+                    self.log('买入单, %.2f,前天的价格：%.2f,昨天价格：%.2f,今天的价格：%.2f,当前现金:%.2f,买价:%.2f，股数:%.2f' % (
+                            buy_price, self.datas[0].close[-2],self.datas[0].close[-1], self.datas[0].close[0], cash, buy_price, size))
 
         else:
-            # 今天没有一字板,  卖
+            # 天没有一字板,  卖
 
             if (self.data0.open[1] - self.data0.close[1]) / self.data0.close[1] < 0.09:
-                sell_price = self.datas[0].open[0] - 0.01
+                sell_price = self.datas[0].open[1] - 0.01
                 self.log('现金：%.2f' % self.broker.getcash())
                 self.log('卖出单, %.2f' % sell_price)
                 # 跟踪订单避免重复

@@ -11,15 +11,15 @@ if not os.path.exists(html_path):
 
 if not os.path.exists(csv_path):
     os.makedirs(csv_path)
+    os.makedirs(csv_path+"win/")
 
 # 对指定股票进行指定的策略回测
-def run_back_test(code, strategy, strategy_dtos, res, to_html_file=False):
+def run_back_test(code, stock_df, strategy, strategy_dtos, res, to_html_file=False):
     # Create a cerebro entity
     cerebro = bt.Cerebro()
 
     # Add a strategy
     # strategy = st.JXDTStrategy
-    stock_df = data.get_online_data(code)
     if stock_df is None:
         return
     stock_df['zt'] = (stock_df['close'] - stock_df.shift(1)['close']) / stock_df.shift(1)['close'] > 0.0099
@@ -56,6 +56,7 @@ def run_back_test(code, strategy, strategy_dtos, res, to_html_file=False):
             re = back[0][0].p.item.pop(p.get_key())
         if re.trade_count > 0:
             res.append(re)
+    return res
 
 
 # 保存结果到html
@@ -81,10 +82,17 @@ def res_to_file(res, name):
     win_counts = [r.win_count for r in res]
     lose_counts = [r.lose_count for r in res]
     trade_counts = [r.trade_count for r in res]
+    cashes = [r.begin_cash for r in res]
+    values = [r.end_cash for r in res]
 
-    out_df = pd.DataFrame(list(zip(codes, summaries, win_counts, lose_counts, trade_counts)),
-                          columns=['code', 'summary', 'win_count', 'lose_count', 'trade_count'])
+    out_df = pd.DataFrame(list(zip(codes, summaries, win_counts, lose_counts, trade_counts,cashes,values)),
+                          columns=['code', 'summary', 'win_count', 'lose_count', 'trade_count','cash','value'])
     out_df.to_csv(csv_path + name + '.csv')
+
+    win_file = csv_path + 'win/' + name + '.csv'
+    out_df[out_df['value'] > out_df['cash']].to_csv(win_file)
+
+
 
 
 def run_with_html(code, strategy, strategy_dtos, res):
@@ -93,3 +101,4 @@ def run_with_html(code, strategy, strategy_dtos, res):
 
 def run(code, strategy, strategy_dtos, res):
     return run_back_test(code, strategy, strategy_dtos, res, False)
+
