@@ -1,5 +1,6 @@
 import baostock as bs
 import pandas as pd
+import talib as ta
 # http://baostock.com/baostock/index.php/A%E8%82%A1K%E7%BA%BF%E6%95%B0%E6%8D%AE
 '''
 
@@ -27,14 +28,13 @@ isST	          是否ST	1是，0否
 
 def get_k_bao_online(code):
     if code.startswith('0') or code.startswith('3'):
-        code += 'sz.'
+        code += '.sz'
     else:
-        code += 'sh.'
+        code += '.sh'
 
     lg = bs.login()
     rs = bs.query_history_k_data_plus(code,
-                                      "date,code,open,high,low,close,preclose,volume,amount,adjustflag,"
-                                      "turn,tradestatus,pctChg,isST,peTTM,,psTTMpbMRQ,pcfNcfTTM",
+                                      "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,isST,peTTM,pbMRQ,pcfNcfTTM",
                                       start_date='2017-07-01', end_date='2050-12-31',
                                       frequency="d", adjustflag="3")
     bs.logout()
@@ -46,5 +46,11 @@ def get_k_bao_online(code):
     if len(data_list) > 0:
         result = pd.DataFrame(data_list, columns=rs.fields)
         result.index = pd.to_datetime(result['date'])
+        rs.fields.remove('date')
+        rs.fields.remove('code')
+        for f in rs.fields:
+            result[f] = pd.to_numeric(result[f])
+        # 计算每日量比
+        result['lb'] = result['volume'] / ta.SMA(result['volume'], timeperiod=5)
         return result
     return None

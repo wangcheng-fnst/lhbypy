@@ -3,6 +3,7 @@ import pandas as pd
 import os
 import data as data
 from backtrader_plotting import Bokeh
+import AddMorePandaFeed
 
 html_path = '../../work/html/'
 csv_path = '../../work/csv/'
@@ -23,7 +24,8 @@ def run_back_test(code, stock_df, strategy, strategy_dtos, res, to_html_file=Fal
     if stock_df is None:
         return
     stock_df['zt'] = (stock_df['close'] - stock_df.shift(1)['close']) / stock_df.shift(1)['close'] > 0.0099
-    bt_data = bt.feeds.PandasData(dataname=stock_df)
+    bt_data = AddMorePandaFeed.AddMorePandaFees(dataname= stock_df)
+    # bt_data = bt.feeds.PandasData(dataname=stock_df)
     if to_html_file:
         cerebro.addstrategy(strategy, p=strategy_dtos[0])
     else:
@@ -95,8 +97,8 @@ def res_to_file(res, name):
 
 
 
-def run_with_html(code, strategy, strategy_dtos, res):
-    return run_back_test(code, strategy, strategy_dtos, res, True)
+def run_with_html(code, stock_df,strategy, strategy_dtos, res):
+    return run_back_test(code,stock_df, strategy, strategy_dtos, res, True)
 
 
 def run(code, strategy, strategy_dtos, res):
