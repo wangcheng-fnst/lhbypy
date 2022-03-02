@@ -184,7 +184,7 @@ class BaseStrategy(bt.Strategy):
         # self.params.res = self.result
 
         res = dto.BtResultDto(self.params.p.code, self.result, self.win_count, self.lose_count,
-                              self.trade_count, self.p.p.begin_cash, self.broker.getvalue())
+                              self.trade_count, self.p.p.begin_cash, self.broker.getvalue(), self.p.p.name)
         self.params.item.update({self.params.p.get_key(): res})
 
 

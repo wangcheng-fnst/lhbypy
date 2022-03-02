@@ -10,10 +10,10 @@ import constants
 # 测试涨停板
 from src.bt_test import AddMorePandaFeed
 
-from pylab import mpl
+import matplotlib as mpl
 
-mpl.rcParams['font.sans-serif'] = ['SimHei']
-mpl.rcParams['axes.unicode_minus'] = False
+mpl.rcParams['font.family']='PingFang HK'
+mpl.rcParams['axes.unicode_minus']=False
 
 # 处理单个股票多个策略的结果，生成策略收益和基础收益曲线图
 def handle_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
@@ -22,11 +22,14 @@ def handle_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
         analyzer = analyzer_map[key]
         # 策略收益序列
         pnl = pd.Series(analyzer.getbyname('_TimeReturn').get_analysis())
-        plot_df = pd.DataFrame(pnl, columns=['strategy_returns'])
-        plot_df['base_return'] = base_return
+        plot_df = pd.DataFrame(pnl, columns=['策略收益'])
+        plot_df['基础收益'] = base_return
         plot_name = constants.get_result_path() + strategy.code + strategy.name + '_plot.png'
         ax = plot_df.plot()
-        ax.set_title(strategy.code)
+        for r in res:
+            if r.code == strategy.code:
+                ax.set_title(r.get_result_str(), fontsize=10)
+                break
         fig = ax.get_figure()
         fig.savefig(plot_name)
         # 单只股票结果存库
