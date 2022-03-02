@@ -1,3 +1,4 @@
+import constants
 
 class BaseStrategyDto:
     def __init__(self, code, name, begin_cash):
@@ -34,3 +35,11 @@ class BtResultDto(object):
 
     def __str__(self):
         return self.summary
+
+
+    def getPlotFile(self):
+        dir = constants.result_path
+        return dir + self.code + '_plot.png'
+
+    def getHtmlFile(self):
+        pass

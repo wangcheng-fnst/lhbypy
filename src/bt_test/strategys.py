@@ -189,7 +189,7 @@ class BaseStrategy(bt.Strategy):
 
 
 
-# 均线多头策略
+# 均线多头策略，次日开盘价买入
 class JXDTStrategy(BaseStrategy):
     params = dict(
         p=dto.JXDto('600600', 5, 10, 20, 30, 'jx', 10000),
@@ -218,17 +218,22 @@ class JXDTStrategy(BaseStrategy):
         if not self.position:
             # 均线多头
             if self.ma1[0] >= self.ma2[0] and self.ma2[0] >= self.ma3[0] and self.ma3[0] >= self.ma4[0]:
-                # 买入
-                # self.log('买入单, %.2f' % self.dataopen[0])
+                cash = self.broker.getcash()
+                buy_price = self.datas[0].open[1] + 0.01
+                size = int((cash - cash * 0.0005) / buy_price / 100) * 100
                 # 跟踪订单避免重复
-                self.order = self.buy(size=200)
+                self.order = self.buy(data=self.data0, size=size, price=buy_price, exectype=bt.Order.Market)
+                # 买入
+                self.log('买入单, %.2f' % buy_price)
+                # 跟踪订单避免重复
         else:
             # 如果已经持仓，开盘价在ma1均线价格之下
-            if self.dataopen[0] < self.ma1[-1]:
-                # 全部卖出
-                # self.log('卖出单, %.2f' % self.dataopen[0])
+            if self.dataopen[0] < self.ma3[-1]:
+                sell_price = self.datas[0].open[1] - 0.01
+                self.log('卖出单, %.2f' % sell_price)
                 # 跟踪订单避免重复
-                self.order = self.sell(size=200)
+                self.order = self.sell(size=self.position.size, price=sell_price)
+
 
     @staticmethod
     def judge_stock(stock_data, p):
