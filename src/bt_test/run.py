@@ -39,7 +39,8 @@ def run_back_test(code, stock_df, bt_data, strategy, strategy_dtos, res, to_html
     cerebro.addanalyzer(analyzers.TotalValue, _name='_TotalValue')
 
     # 设置投资金额1000.0
-    cerebro.broker.setcash(10000.0)
+    cash = strategy_dtos[0].begin_cash
+    cerebro.broker.setcash(cash)
     # 每笔交易使用固定交易量
     # cerebro.addsizer(bt.sizers.FixedSize, stake=100)
     # 设置佣金为0.0
@@ -100,6 +101,6 @@ def res_to_file(res, name):
 def run_with_html(code, stock_df, bt_data, strategy, strategy_dtos, res):
     return run_back_test(code, stock_df, bt_data, strategy, strategy_dtos, res, True)
 
-
+# 策略优化
 def run_with_opt(code, stock_df, bt_data, strategy, strategy_dtos, res):
     return run_back_test(code, stock_df, bt_data, strategy, strategy_dtos, res, False)

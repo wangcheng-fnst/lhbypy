@@ -6,6 +6,7 @@ import data
 import bao_stock
 import pandas as pd
 import constants
+import strategy_result_analysis as sra
 
 # 测试涨停板
 from src.bt_test import AddMorePandaFeed
@@ -59,7 +60,7 @@ def test_zt(n_code=None):
 
 def test_jx(n_code=None):
     res = []
-    codes = data.read_stock_code().loc[1000:1010]['code']
+    codes = data.read_stock_code()['code']
     if n_code:
         codes = [n_code]
     for code in codes:
@@ -70,13 +71,12 @@ def test_jx(n_code=None):
         stock_df['OpenInterest'] = 0
         stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'peTTM', 'pbMRQ']]
         strategy = st.JXDTStrategy
-        dtos = [dto.JXDto(code, 5, 10, 20, 30, '均线-1', 10000)]
         bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
-
-        cerebro, analyzer_map = run.run_with_html(code, stock_df, bt_data, strategy, dtos, res)
-        stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
-        handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
-    run.res_to_file(res, 'jx')
+        dtos = [dto.JXDto(code, 5, 10, 20, 30, '均线-1', 100000),dto.JXDto(code, 5, 20, 60, 180, '均线-2', 100000)]
+        cerebro, analyzer_map = run.run_with_opt(code, stock_df, bt_data, strategy, dtos, res)
+        # stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
+        # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
+    sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
 
 
 test_jx()
