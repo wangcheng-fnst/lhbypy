@@ -9,7 +9,7 @@ import constants
 import strategy_result_analysis as sra
 
 # 测试涨停板
-from src.bt_test import AddMorePandaFeed
+import AddMorePandaFeed
 
 import matplotlib as mpl
 
@@ -79,9 +79,10 @@ def test_jx(n_code=None):
     sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
 
 
-test_jx()
-
-
-# test_zt()
+def run_test(strategy):
+    if strategy == 'jx':
+        test_jx()
+    if strategy == 'zt':
+        test_zt()
 
 
