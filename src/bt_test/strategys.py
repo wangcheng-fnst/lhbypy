@@ -210,6 +210,11 @@ class JXDTStrategy(BaseStrategy):
 
 
     def next(self):
+        total = len(self.datas[0].open.array)
+        idx = self.datas[0].open.idx
+        if idx >= (total - 1):
+            self.log('to today no tomorrow')
+            return
         # 如果有订单正在挂起，不操作
         if self.order:
             return
