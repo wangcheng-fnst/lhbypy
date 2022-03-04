@@ -29,7 +29,7 @@ isST	          是否ST	1是，0否
 def get_k_bao_online(code):
     if code.startswith('0') or code.startswith('3'):
         code += '.sz'
-    else:
+    elif code.startswith('6'):
         code += '.sh'
 
     lg = bs.login()

@@ -38,7 +38,8 @@ def handle_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
 
 def test_zt(n_code=None):
     res = []
-    codes = data.read_stock_code().loc[1000:1010]['code']
+    # codes = data.read_stock_code().loc[1000:1010]['code']
+    codes = data.read_hs_300_code()
     if n_code:
         codes = [n_code]
     for code in codes:
@@ -60,10 +61,12 @@ def test_zt(n_code=None):
 
 def test_jx(n_code=None):
     res = []
-    codes = data.read_stock_code()['code']
+    codes = data.read_hs_300_code()
     if n_code:
         codes = [n_code]
+    i = 0
     for code in codes:
+        i += 1
         code = str(code)
         stock_df = bao_stock.get_k_bao_online(code)
         if stock_df is None:
@@ -74,6 +77,7 @@ def test_jx(n_code=None):
         bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
         dtos = [dto.JXDto(code, 5, 10, 20, 30, '均线-1', 100000),dto.JXDto(code, 5, 20, 60, 180, '均线-2', 100000)]
         cerebro, analyzer_map = run.run_with_opt(code, stock_df, bt_data, strategy, dtos, res)
+        print('finished %i' % i)
         # stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
         # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
     sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
