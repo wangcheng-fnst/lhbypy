@@ -2,6 +2,7 @@ import pandas as pd
 import tushare as tu
 import baostock as bs
 import datetime
+import os
 
 
 def write_data(code, start=None, end=None):
@@ -57,9 +58,21 @@ def write_hs_300_code():
         # 获取一条记录，将记录合并在一起
         hs300_stocks.append(rs.get_row_data())
     result = pd.DataFrame(hs300_stocks, columns=rs.fields)
-    result.to_csv('hs300.scv')
+    result.to_csv('hs300.csv')
 
-write_hs_300_code()
+def read_etf():
+    if not os.path.exists('etf.csv'):
+        lg = bs.login()
+        # 获取沪深300成分股
+        rs = bs.query_hs300_stocks()
+        lg = bs.logout()
+        # 打印结果集
+        hs300_stocks = []
+        while (rs.error_code == '0') & rs.next():
+            # 获取一条记录，将记录合并在一起
+            hs300_stocks.append(rs.get_row_data())
+
+# write_hs_300_code()
 
 # write_stock_code()
 #

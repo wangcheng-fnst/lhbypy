@@ -108,11 +108,15 @@ class TestStrategy(bt.Strategy):
 class BaseStrategy(bt.Strategy):
 
     def __init__(self):
+        # 基本技术指标：成交量，换手，量比
+        self.volume_ma5 = bt.talib.SMA(self.datas[0].volume, timeperiod=5)
+        self.turn_ma5 = bt.talib.SMA(self.datas[0].turn, timeperiod=5)
         # 跟踪挂单
         self.order = None
         self.buy_count = 0
         self.sell_count = 0
         # 买入价格和手续费
+        self.buydate = None
         self.buyprice = None
         self.buycomm = None
         self.win_count = 0
@@ -120,6 +124,7 @@ class BaseStrategy(bt.Strategy):
         self.trade_count = 0
         # 结果
         self.result = None
+        self.trade_detail = {}
 
     def log(self, txt, dt=None):
         # 记录策略的执行日志
@@ -144,10 +149,18 @@ class BaseStrategy(bt.Strategy):
                      order.executed.value,
                      order.executed.size,
                      order.executed.comm))
-
+                self.buydate = self.datas[0].datetime.date(0)
                 self.buyprice = order.executed.price
                 self.buycomm = order.executed.comm
                 self.buy_count += order.executed.size
+                trade_detail = {}
+                trade_detail.update({'volume': self.datas[0].volume[0]})
+                trade_detail.update({'volume_ma5': self.volume_ma5[0]})
+                trade_detail.update({'turn': self.datas[0].turn[0]})
+                trade_detail.update({'turn_ma5': self.turn_ma5[0]})
+
+                self.trade_detail.update({self.datas[0].datetime.date(0): trade_detail})
+
             elif order.issell():
                 self.log('已卖出, 价格: %.2f, 费用: %.2f, 股数：%i，佣金 %.2f' %
                          (order.executed.price,
@@ -177,6 +190,8 @@ class BaseStrategy(bt.Strategy):
             self.lose_count += 1
         self.log('交易利润, 毛利润 %.2f, 净利润 %.2f' %
                  (trade.pnl, trade.pnlcomm))
+        trade_detail = self.trade_detail.get(self.buydate)
+        trade_detail.update({'pnl': trade.pnlcomm})
 
     def stop(self):
         self.result = '股票：%s, 策略：%s,最后资金：%.2f，交易总次数：%i，盈利次数：%i，亏损次数：%i' % (
@@ -184,7 +199,7 @@ class BaseStrategy(bt.Strategy):
         # self.params.res = self.result
 
         res = dto.BtResultDto(self.params.p.code, self.result, self.win_count, self.lose_count,
-                              self.trade_count, self.p.p.begin_cash, self.broker.getvalue(), self.p.p.name)
+                              self.trade_count, self.p.p.begin_cash, self.broker.getvalue(), self.p.p.name, self.trade_detail)
         self.params.item.update({self.params.p.get_key(): res})
 
 
@@ -206,10 +221,15 @@ class JXDTStrategy(BaseStrategy):
         self.ma3 = bt.talib.SMA(self.dataclose, timeperiod=self.params.p.ma3)
         self.ma4 = bt.talib.SMA(self.dataclose, timeperiod=self.params.p.ma4)
         self.name = self.params.p.name
+        self.end_date = self.data0.datetime.date(-1)
+
         BaseStrategy.__init__(self)
 
 
     def next(self):
+        cur_date = self.data0.datetime.date(0)
+        if cur_date >= self.end_date:
+            return
         total = len(self.datas[0].open.array)
         idx = self.datas[0].open.idx
         if idx >= (total - 1):
@@ -222,7 +242,8 @@ class JXDTStrategy(BaseStrategy):
         # 如果没有持仓则买入
         if not self.position:
             # 均线多头
-            if self.ma1[0] >= self.ma2[0] and self.ma2[0] >= self.ma3[0] and self.ma3[0] >= self.ma4[0]:
+            if self.ma1[0] >= self.ma2[0] and self.ma2[0] >= self.ma3[0] \
+                    and self.ma1[-1] >= self.ma2[-1] and self.ma2[-1] >= self.ma3[-1] :
                 cash = self.broker.getcash()
                 buy_price = self.datas[0].open[1] + 0.01
                 size = int((cash - cash * 0.0005) / buy_price / 100) * 100
@@ -232,8 +253,11 @@ class JXDTStrategy(BaseStrategy):
                 self.log('买入单, %.2f' % buy_price)
                 # 跟踪订单避免重复
         else:
-            # 如果已经持仓，开盘价在ma1均线价格之下
-            if self.dataopen[0] < self.ma3[-1]:
+            # 如果已经持仓，如果收盘价在ma2均线价格之下，且还是盈利 或者持仓达到了10日
+            yl_flag = self.buyprice < self.dataclose[0] and self.dataclose[0] < self.ma2[0]
+            cur_date = self.data0.datetime.date(0)
+            hold_date = (cur_date - self.buydate).days
+            if yl_flag or hold_date >= 10:
                 sell_price = self.datas[0].open[1] - 0.01
                 self.log('卖出单, %.2f' % sell_price)
                 # 跟踪订单避免重复

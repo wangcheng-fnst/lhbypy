@@ -59,7 +59,7 @@ def test_zt(n_code=None):
     run.res_to_file(res, 'zt')
 
 
-def test_jx(n_code=None):
+def test_jx(n_code=None, codes=None):
     res = []
     codes = data.read_hs_300_code()
     if n_code:
@@ -72,10 +72,10 @@ def test_jx(n_code=None):
         if stock_df is None:
             continue
         stock_df['OpenInterest'] = 0
-        stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'peTTM', 'pbMRQ']]
+        stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'peTTM', 'pbMRQ', 'volume', 'lb']]
         strategy = st.JXDTStrategy
         bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
-        dtos = [dto.JXDto(code, 5, 10, 20, 30, '均线-1', 100000),dto.JXDto(code, 5, 20, 60, 180, '均线-2', 100000)]
+        dtos = [dto.JXDto(code, 5, 10, 20, 180, '均线-1', 100000)]
         cerebro, analyzer_map = run.run_with_opt(code, stock_df, bt_data, strategy, dtos, res)
         print('finished %i' % i)
         # stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']

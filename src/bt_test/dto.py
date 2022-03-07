@@ -23,7 +23,8 @@ class JXDto(BaseStrategyDto):
 
 
 class BtResultDto(object):
-    def __init__(self,code,summary,win_count,lose_count, trade_count, begin_cash, end_cash, strategy_name):
+    def __init__(self,code,summary,win_count,lose_count, trade_count,
+                 begin_cash, end_cash, strategy_name, trade_detail):
         self.code = code
         self.summary = summary
         self.win_count = win_count
@@ -32,6 +33,7 @@ class BtResultDto(object):
         self.begin_cash = begin_cash
         self.end_cash = end_cash
         self.strategy_name = strategy_name
+        self.trade_detail = trade_detail
 
     def get_result_str(self):
         return '股票：%s, 策略：%s\n初始资金：%.2f，最后资金：%.2f \n盈利次数：%i，亏损次数：%i' % (self.code,self.strategy_name,self.begin_cash,

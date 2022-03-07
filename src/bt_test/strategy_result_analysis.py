@@ -2,10 +2,20 @@
 import pandas as pd
 import constants
 
+
 # 处理策略在股票上效果的结果
 def handle_strategy_result(res, output_file_dir):
+    codes = [r.code for r in res]
     list = [(r.code, r.strategy_name, r.win_count, r.lose_count, r.trade_count, r.begin_cash, r.end_cash, r.summary) for
             r in res]
+
+    trade_detail_map = {}
+    for r in res:
+        detail_list = [(k, r.trade_detail.get(k).get('volume'),r.trade_detail.get(k).get('volume_ma5'),r.trade_detail.get(k).get('turn'),r.trade_detail.get(k).get('turn_ma5'),r.trade_detail.get(k).get('pnl')) for k in r.trade_detail.keys()]
+        trade_detail_df = pd.DataFrame(detail_list, columns=['date', 'volume', 'volume_ma5', 'turn', 'turn_ma5', 'pnl'])
+        trade_detail_df['code'] = r.code
+        trade_detail_df['strategy_name'] = r.strategy_name
+        trade_detail_map.update({r.code+'-'+r.strategy_name : trade_detail_df})
 
     out_df = pd.DataFrame(list,
                           columns=['code', 'strategy', 'win_count', 'lose_count', 'trade_count', 'cash', 'value',
@@ -17,7 +27,7 @@ def handle_strategy_result(res, output_file_dir):
     deal_df['win_rate'] = deal_df['win_rate'].apply(lambda x: format(x, '.2%'))
     deal_df.to_csv(output_file_dir + '总览.csv')
     # top 10 排序
-    top_df = out_df.sort_values(['strategy', 'value', 'win_count'], ascending=False).groupby('strategy').head(10)
+    top_df = out_df.sort_values(['strategy', 'win_rate', 'value'], ascending=False).groupby('strategy').head(10)
     top_df.to_csv(output_file_dir + 'top10.csv')
 
 # 处理单个股票多个策略的结果，生成策略收益和基础收益曲线图
