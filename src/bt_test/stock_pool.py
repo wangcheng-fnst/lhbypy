@@ -2,7 +2,7 @@ import baostock as bs
 import akshare as ak
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
 import pandas as pd
-import bao_stock
+import constants
 import datetime
 import talib as ta
 import time
@@ -143,14 +143,17 @@ def get_stock_basic(code, start_date, end_date):
     return code
 
 
-def get_writed_codes():
-    writed_codes = pd.read_sql('select distinct code from stock_basic_data', engine)
 
 
 def write_stock_basic(start_date, end_date):
     all_stock_df = ak.stock_zh_a_spot_em()
+    writed_codes = pd.read_sql('select distinct code from stock_basic_data', engine)
+    flag = all_stock_df['代码'].isin(writed_codes['code'])
+    diff = all_stock_df[[not f for f in flag]]
     i = 0
-    for code in all_stock_df['代码']:
+    for code in diff['代码']:
+        if str(code).startswith('4') or str(code).startswith('8') :
+            continue
         all_tasks = []
         all_tasks.append(executor.submit(get_stock_basic, code, start_date, end_date))
         i +=1
@@ -160,4 +163,7 @@ def write_stock_basic(start_date, end_date):
         i = 0
         all_tasks.clear()
 
-write_stock_basic('2018-01-01','2022-03-15')
+# write_stock_basic('2018-01-01','2022-03-15')
+
+
+# daily_task()
