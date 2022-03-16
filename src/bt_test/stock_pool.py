@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 
 engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:3306/stock_db')
 
-executor = ThreadPoolExecutor(max_workers=5)
+executor = ThreadPoolExecutor(max_workers=10)
 # 中证50
 def get_zz50():
 
@@ -79,6 +79,7 @@ def get_stock_data(code, start_date, end_date):
     # print(code)
     try:
         stock_df.to_sql('stock_data', engine, index=False, if_exists='append')
+        time.sleep(0.1)
     except Exception as e:
         print('=============insert error= %s,e=%s'% (code, e))
     return code, stock_df
@@ -95,7 +96,7 @@ def get_all_stock_pool(start_date, end_date):
         all_tasks = []
         all_tasks.append(executor.submit(get_stock_data, code, start_date, end_date))
         i += 1
-        if i >= 100:
+        if i >= 200:
             c_b = datetime.datetime.now()
             for task in as_completed(all_tasks):
                 try:
@@ -112,6 +113,7 @@ def get_all_stock_pool(start_date, end_date):
             print('c_cost:%i' % c_cost)
             i = 0
         all_tasks.clear()
+        # time.sleep(10)
 
 
     # all_tasks = [executor.submit(get_stock_data, code, start_date, end_date) for code in all_stock_df['代码']]
@@ -123,4 +125,39 @@ def get_all_stock_pool(start_date, end_date):
     print(len(stock_datas.keys()))
     pass
 
-get_all_stock_pool('2018-01-01', '2022-03-15')
+# get_all_stock_pool('2018-01-01', '2022-03-15')
+
+def get_stock_basic(code, start_date, end_date):
+    try:
+        start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        base_df = ak.stock_a_lg_indicator(code)
+        base_df = base_df.rename({'trade_date':'date'}, axis='columns')
+        base_df.index = pd.to_datetime(base_df['date'])
+        t = base_df.loc[end:start].sort_index()
+        t['code'] = code
+        t.to_sql('stock_basic_data', engine, index=False, if_exists='append')
+
+    except Exception as e:
+        print('get_stock_basic error: %s, error:%s' % (code, e))
+    return code
+
+
+def get_writed_codes():
+    writed_codes = pd.read_sql('select distinct code from stock_basic_data', engine)
+
+
+def write_stock_basic(start_date, end_date):
+    all_stock_df = ak.stock_zh_a_spot_em()
+    i = 0
+    for code in all_stock_df['代码']:
+        all_tasks = []
+        all_tasks.append(executor.submit(get_stock_basic, code, start_date, end_date))
+        i +=1
+        if i >= 100:
+            for task in as_completed(all_tasks):
+                b_code = task.result()
+        i = 0
+        all_tasks.clear()
+
+write_stock_basic('2018-01-01','2022-03-15')
