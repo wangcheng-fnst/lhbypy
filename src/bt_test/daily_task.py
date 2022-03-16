@@ -8,3 +8,5 @@ def all_to_csv():
     path = constants.get_result_path('stock_data')
     file = path + '/daily.csv'
     all_stock_df.to_csv(file, mode='a', header=False)
+
+all_to_csv()
