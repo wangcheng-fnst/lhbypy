@@ -5,7 +5,7 @@ import strategys as st
 import data
 import bao_stock
 import pandas as pd
-import constants
+import src.common.constants as constants
 import strategy_result_analysis as sra
 
 # 测试涨停板

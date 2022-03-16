@@ -1,6 +1,6 @@
 # 回测结果分析
 import pandas as pd
-import constants
+import src.common.constants as constants
 
 
 # 处理策略在股票上效果的结果

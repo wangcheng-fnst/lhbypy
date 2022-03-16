@@ -32,12 +32,12 @@ def get_k_bao_online(code):
     elif code.startswith('6'):
         code += '.sh'
 
-    lg = bs.login()
+    # lg = bs.login()
     rs = bs.query_history_k_data_plus(code,
                                       "date,code,open,high,low,close,preclose,volume,amount,adjustflag,turn,tradestatus,pctChg,isST,peTTM,pbMRQ,pcfNcfTTM",
                                       start_date='2017-07-01', end_date='2050-12-31',
                                       frequency="d", adjustflag="3")
-    bs.logout()
+    # bs.logout()
     data_list = []
     while (rs.error_code == '0') & rs.next():
         # 获取一条记录，将记录合并在一起
