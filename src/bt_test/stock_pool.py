@@ -13,7 +13,7 @@ engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:
 executor = ThreadPoolExecutor(max_workers=10)
 
 # 给backtrader的数据需要升序排列,并且数据个数要大于一年(250)
-def get_all(start, end):
+def get_all(start, end, min_trade_count=250):
     all_codes = ak.stock_zh_a_spot_em()['代码']
     size = all_codes.size
     i = 0
@@ -31,7 +31,7 @@ def get_all(start, end):
         print(str(i))
         for code in codes:
             t = df[df['code'] == code]
-            if t.index.size >= 250:
+            if t.index.size >= min_trade_count:
                 t.index = pd.to_datetime(t['date'])
                 stocks.update({code: t})
         i += page

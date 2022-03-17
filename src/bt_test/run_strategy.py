@@ -60,8 +60,7 @@ def test_zt(n_code=None):
     run.res_to_file(res, 'zt')
 
 
-def test_jx(n_code=None, codes=None):
-    stock_datas = sp.get_all('2020-01-01', '2022-01-01')
+def test_jx(stock_datas, n_code=None, model='hc'):
     res = []
     codes = stock_datas.keys()
     if n_code:
@@ -85,14 +84,14 @@ def test_jx(n_code=None, codes=None):
             # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
         except Exception as e:
             print('code=%s, e=%s' % (code,e))
-    sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
+    if model == 'hc':
+        sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
+    return res
 
 
 def run_test(strategy):
     if strategy == 'jx':
-        test_jx()
+        stock_datas = sp.get_all('2020-01-01', '2022-01-01')
+        test_jx(stock_datas = stock_datas)
     if strategy == 'zt':
         test_zt()
-
-
-test_jx()
