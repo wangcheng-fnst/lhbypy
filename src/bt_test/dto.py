@@ -1,4 +1,4 @@
-import constants
+import src.common.constants as constants
 
 class BaseStrategyDto:
     def __init__(self, code, name, begin_cash):

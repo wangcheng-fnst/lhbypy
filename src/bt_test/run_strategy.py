@@ -7,6 +7,7 @@ import bao_stock
 import pandas as pd
 import src.common.constants as constants
 import strategy_result_analysis as sra
+import stock_pool as sp
 
 # 测试涨停板
 import AddMorePandaFeed
@@ -60,26 +61,30 @@ def test_zt(n_code=None):
 
 
 def test_jx(n_code=None, codes=None):
+    stock_datas = sp.get_all('2020-01-01', '2022-01-01')
     res = []
-    codes = data.read_hs_300_code()
+    codes = stock_datas.keys()
     if n_code:
         codes = [n_code]
     i = 0
     for code in codes:
-        i += 1
-        code = str(code)
-        stock_df = bao_stock.get_k_bao_online(code)
-        if stock_df is None:
-            continue
-        stock_df['OpenInterest'] = 0
-        stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'peTTM', 'pbMRQ', 'volume', 'lb']]
-        strategy = st.JXDTStrategy
-        bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
-        dtos = [dto.JXDto(code, 5, 10, 20, 180, '均线-1', 100000)]
-        cerebro, analyzer_map = run.run_with_opt(code, stock_df, bt_data, strategy, dtos, res)
-        print('finished %i' % i)
-        # stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
-        # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
+        try:
+            i += 1
+            code = str(code)
+            stock_df = stock_datas.get(code)
+            if stock_df is None:
+                continue
+            stock_df['OpenInterest'] = 0
+            stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'pe', 'pb', 'volume', 'lb']]
+            strategy = st.JXDTStrategy
+            bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
+            dtos = [dto.JXDto(code, 5, 10, 20, 180, '均线-1', 100000)]
+            cerebro, analyzer_map = run.run_with_opt(code, stock_df, bt_data, strategy, dtos, res)
+            print('finished %i,%s' % (i, code))
+            # stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
+            # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
+        except Exception as e:
+            print('code=%s, e=%s' % (code,e))
     sra.handle_strategy_result(res, constants.get_result_path('JXDTStrategy/'))
 
 
@@ -90,3 +95,4 @@ def run_test(strategy):
         test_zt()
 
 
+test_jx()

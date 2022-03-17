@@ -2,7 +2,7 @@ import baostock as bs
 import akshare as ak
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
 import pandas as pd
-import constants
+import src.common.constants as constants
 import datetime
 import talib as ta
 import time
@@ -11,6 +11,33 @@ from sqlalchemy import create_engine
 engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:3306/stock_db')
 
 executor = ThreadPoolExecutor(max_workers=10)
+
+# 给backtrader的数据需要升序排列,并且数据个数要大于一年(250)
+def get_all(start, end):
+    all_codes = ak.stock_zh_a_spot_em()['代码']
+    size = all_codes.size
+    i = 0
+    page = 200
+    stocks = {}
+    while i < size:
+        s = '''select sd.date,sd.code,open,close,low,high,turn,volume,amount,lb,sbd.pe,sbd.pb,sbd.total_mv 
+                from stock_data sd left join stock_basic_data sbd on sd.code= sbd.code and sd.date=sbd.date 
+            where sd.date between ''' +'\'' + start + '\' and \'' + end + '\' and sd.code in '
+        codes = [c for c in all_codes.iloc[i:i + page]]
+        c_s = ','.join(codes)
+        s = s + '(' + c_s + ')'
+        s = s + 'order by date asc'
+        df = pd.read_sql(s, engine)
+        print(str(i))
+        for code in codes:
+            t = df[df['code'] == code]
+            if t.index.size >= 250:
+                t.index = pd.to_datetime(t['date'])
+                stocks.update({code: t})
+        i += page
+
+    return stocks
+
 # 中证50
 def get_zz50():
 
@@ -167,3 +194,5 @@ def write_stock_basic(start_date, end_date):
 
 
 # daily_task()
+
+# get_all('2021-01-01','2021-02-01')
