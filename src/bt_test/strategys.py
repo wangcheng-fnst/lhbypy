@@ -271,10 +271,10 @@ class JXDTStrategy(BaseStrategy):
         stock_data['ma3'] = ta.SMA(stock_data['close'], timeperiod=p.ma3)
         stock_data['ma4'] = ta.SMA(stock_data['close'], timeperiod=p.ma4)
         hit = (stock_data['ma1'][-1] >= stock_data['ma2'][-1]) \
-              and (stock_data['ma2'][-1] >= stock_data['ma3'][-1])
-        print('code=%s,hti=%s,ma1=%.2f,ma2=%.2f,ma3=%.2f,ma4=%.2f' % (stock_data['code'][-1], hit,stock_data['ma1'][-1],
-                                                                   stock_data['ma2'][-1], stock_data['ma3'][-1],
-                                                                   stock_data['ma4'][-1]))
+              and (stock_data['ma2'][-1] >= stock_data['ma3'][-1])  \
+              and (stock_data['ma2'][-2] >= stock_data['ma3'][-2]) \
+              and (stock_data['ma2'][-2] >= stock_data['ma3'][-2])
+
         return hit
 
 

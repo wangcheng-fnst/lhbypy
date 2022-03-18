@@ -2,7 +2,6 @@ import baostock as bs
 import akshare as ak
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
 import pandas as pd
-import src.common.constants as constants
 import datetime
 import talib as ta
 import time
@@ -12,30 +11,37 @@ engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:
 
 executor = ThreadPoolExecutor(max_workers=10)
 
-# 给backtrader的数据需要升序排列,并且数据个数要大于一年(250)
-def get_all(start, end, min_trade_count=250):
+def get_by_sql(sql, codes):
+    df = pd.read_sql(sql, engine)
+    return codes,df
+
+# 给backtrader的数据需要升序排列,并且数据个数要大于一年(200)
+def get_all(start, end, min_trade_count=200):
     all_codes = ak.stock_zh_a_spot_em()['代码']
     size = all_codes.size
     i = 0
     page = 200
     stocks = {}
     while i < size:
-        s = '''select sd.date,sd.code,open,close,low,high,turn,volume,amount,lb,sbd.pe,sbd.pb,sbd.total_mv 
+        tasks = []
+        for n in range(0, 5):
+            s = '''select sd.date,sd.code,open,close,low,high,turn,volume,amount,lb,sbd.pe,sbd.pb,sbd.total_mv 
                 from stock_data sd left join stock_basic_data sbd on sd.code= sbd.code and sd.date=sbd.date 
-            where sd.date between ''' +'\'' + start + '\' and \'' + end + '\' and sd.code in '
-        codes = [c for c in all_codes.iloc[i:i + page]]
-        c_s = ','.join(codes)
-        s = s + '(' + c_s + ')'
-        s = s + 'order by date asc'
-        df = pd.read_sql(s, engine)
-        print(str(i))
-        for code in codes:
-            t = df[df['code'] == code]
-            if t.index.size >= min_trade_count:
-                t.index = pd.to_datetime(t['date'])
-                stocks.update({code: t})
-        i += page
-
+                where sd.date between ''' +'\'' + start + '\' and \'' + end + '\' and sd.code in '
+            codes = [c for c in all_codes.iloc[i:i + page]]
+            c_s = ','.join(codes)
+            s = s + '(' + c_s + ')'
+            s = s + 'order by date asc'
+            tasks.append(executor.submit(get_by_sql, s, codes))
+            i += page
+            print(str(i))
+        for task in as_completed(tasks):
+            r_codes, df = task.result()
+            for code in r_codes:
+                t = df[df['code'] == code]
+                if t.index.size >= min_trade_count:
+                    t.index = pd.to_datetime(t['date'])
+                    stocks.update({code: t})
     return stocks
 
 # 中证50
