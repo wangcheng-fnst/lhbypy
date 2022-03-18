@@ -152,7 +152,8 @@ def get_all_stock_pool(start_date, end_date):
     print(len(stock_datas.keys()))
     pass
 
-# get_all_stock_pool('2018-01-01', '2022-03-15')
+# 批量补数据
+# get_all_stock_pool('2022-03-16', '2022-03-17')
 
 def get_stock_basic(code, start_date, end_date):
     try:
@@ -174,9 +175,12 @@ def get_stock_basic(code, start_date, end_date):
 
 def write_stock_basic(start_date, end_date):
     all_stock_df = ak.stock_zh_a_spot_em()
-    writed_codes = pd.read_sql('select distinct code from stock_basic_data', engine)
+    sql = '''select distinct code from stock_basic_data 
+                where date =''' +'\'' + start_date + '\''
+    writed_codes = pd.read_sql( sql, engine)
     flag = all_stock_df['代码'].isin(writed_codes['code'])
     diff = all_stock_df[[not f for f in flag]]
+    print('count = %i' % diff.index.size)
     i = 0
     for code in diff['代码']:
         if str(code).startswith('4') or str(code).startswith('8') :
@@ -190,9 +194,7 @@ def write_stock_basic(start_date, end_date):
         i = 0
         all_tasks.clear()
 
-# write_stock_basic('2018-01-01','2022-03-15')
-
-
-# daily_task()
+# 批量basic补数据
+# write_stock_basic('2022-03-16','2022-03-17')
 
 # get_all('2021-01-01','2021-02-01')
