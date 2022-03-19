@@ -170,7 +170,7 @@ def get_stock_basic(code, start_date, end_date):
         base_df.index = pd.to_datetime(base_df['date'])
         t = base_df.loc[end:start].sort_index()
         t['code'] = code
-        t.to_sql('stock_basic_data', engine, index=False, if_exists='append')
+        # t.to_sql('stock_basic_data', engine, index=False, if_exists='append')
 
     except Exception as e:
         print('get_stock_basic error: %s, error:%s' % (code, e))
@@ -188,19 +188,20 @@ def write_stock_basic(start_date, end_date):
     diff = all_stock_df[[not f for f in flag]]
     print('count = %i' % diff.index.size)
     i = 0
+    all_tasks = []
     for code in diff['代码']:
-        if str(code).startswith('4') or str(code).startswith('8') :
+        if str(code).startswith('4') or str(code).startswith('8'):
             continue
-        all_tasks = []
+
         all_tasks.append(executor.submit(get_stock_basic, code, start_date, end_date))
         i +=1
         if i >= 100:
             for task in as_completed(all_tasks):
                 b_code = task.result()
-        i = 0
-        all_tasks.clear()
+            i = 0
+            all_tasks.clear()
 
 # 批量basic补数据
-# write_stock_basic('2022-03-16','2022-03-17')
+write_stock_basic('2022-03-18','2022-03-19')
 
 # get_all('2021-01-01','2021-02-01')
