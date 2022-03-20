@@ -21,23 +21,25 @@ def all_to_csv():
     all_stock_df.to_csv(file, mode='a', header=False)
 
 
-def daily_to_db():
+def daily_to_db(today):
     # 序号	代码	名称	最新价	涨跌幅	涨跌额	成交量	成交额	振幅	最高	最低	今开	昨收	量比	换手率	市盈率-动态	市净率
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    # today = datetime.datetime.now().strftime('%Y-%m-%d')
     all_stock_df = ak.stock_zh_a_spot_em()
-    all_stock_df.rename({'今开': 'open',
-                        '最新价': 'close',
-                        '最高': 'high',
-                        '最低': 'low',
-                        '成交量': 'volume',
-                        '成交额': 'amount',
-                        '换手率': 'turn',
-                        '量比': 'lb',
+
+    stock_data_df = all_stock_df[['代码', '今开', '最低', '最高', '最新价', '成交量',
+                                  '换手率', '量比', '成交额','振幅', '涨跌幅', '涨跌额']]
+    stock_data_df = stock_data_df.rename({'今开': 'open',
+                         '最新价': 'close',
+                         '最高': 'high',
+                         '最低': 'low',
+                         '成交量': 'volume',
+                         '成交额': 'amount',
+                         '换手率': 'turn',
+                         '量比': 'lb',
                          '市盈率-动态': 'pe_M',
                          '市净率': 'pb'
-                        },
-            axis='columns')
-    stock_data_df = all_stock_df[['代码', '今开', '最低', '最高', '最新价', '成交量', '换手率', '量比', '成交额']]
+                         },
+                        axis='columns')
 
     all_stock_df['date'] = today
 
@@ -104,5 +106,5 @@ def daily_basic_tod_db(today):
                                                        (all_end - all_begin).seconds))
 
 
-daily_basic_tod_db('2022-03-18')
+# daily_basic_tod_db('2022-03-18')
 
