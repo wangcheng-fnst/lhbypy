@@ -21,9 +21,9 @@ def all_to_csv():
     all_stock_df.to_csv(file, mode='a', header=False)
 
 
-def daily_to_db(today):
+def daily_data_to_db(today):
     # 序号	代码	名称	最新价	涨跌幅	涨跌额	成交量	成交额	振幅	最高	最低	今开	昨收	量比	换手率	市盈率-动态	市净率
-    # today = datetime.datetime.now().strftime('%Y-%m-%d')
+
     all_stock_df = ak.stock_zh_a_spot_em()
 
     stock_data_df = all_stock_df[['代码', '今开', '最低', '最高', '最新价', '成交量',
@@ -36,12 +36,16 @@ def daily_to_db(today):
                          '成交额': 'amount',
                          '换手率': 'turn',
                          '量比': 'lb',
-                         '市盈率-动态': 'pe_M',
-                         '市净率': 'pb'
+                         '市盈率-动态': 'pe',
+                         '市净率': 'pb',
+                         '代码': 'code'
                          },
                         axis='columns')
 
-    all_stock_df['date'] = today
+    stock_data_df['date'] = today
+    stock_data_df.to_sql('stock_data', engine, index=False, if_exists='append')
+
+
 
 
 def get_stock_basic(code, start_date, success_codes, error_codes):
@@ -60,7 +64,7 @@ def get_stock_basic(code, start_date, success_codes, error_codes):
         error_codes.add(code)
     return code
 
-def daily_basic_tod_db(today):
+def daily_basic_to_db(today):
     all_stock_df = ak.stock_zh_a_spot_em()
     sql = '''select distinct code from stock_basic_data 
                     where date =''' + '\'' + today + '\''
@@ -68,10 +72,10 @@ def daily_basic_tod_db(today):
     flag = all_stock_df['代码'].isin(db_codes['code'])
     diff = all_stock_df[[not f for f in flag]]
     all_size = diff.index.size
-
+    print('all : %i' % all_size)
     success_codes = set()
     error_codes = set()
-    max_try_count = 3
+    max_try_count = 5
     try_count = 0
     all_begin = datetime.datetime.now()
     while try_count < max_try_count:
@@ -108,3 +112,9 @@ def daily_basic_tod_db(today):
 
 # daily_basic_tod_db('2022-03-18')
 
+def daily():
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    daily_basic_to_db(today)
+    daily_data_to_db(today)
+
+# daily()
