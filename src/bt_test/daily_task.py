@@ -1,4 +1,6 @@
 import akshare as ak
+import pandas
+
 import src.common.constants as constants
 import datetime
 import pandas as pd
@@ -54,11 +56,18 @@ def get_stock_basic(code, start_date, success_codes, error_codes):
         base_df = ak.stock_a_lg_indicator(code)
         base_df = base_df.rename({'trade_date':'date'}, axis='columns')
         base_df.index = pd.to_datetime(base_df['date'])
-        t = base_df.loc[start_date]
+        t = None
+        if base_df.index.size == 1:
+            t = base_df
+        else:
+            t = base_df.loc[start_date, ['date', 'pe', 'pe_ttm', 'total_mv',
+                                     'pb', 'ps', 'ps_ttm', 'dv_ratio', 'dv_ttm']]
+        if isinstance(t, pandas.Series):
+            print('code:%s,is series' % code)
         t['code'] = code
-        success_codes.add(code)
         # print('success_codes add %s'%code)
         t.to_sql('stock_basic_data', engine, index=False, if_exists='append')
+        success_codes.add(code)
     except Exception as e:
         print('get_stock_basic error: %s, error:%s' % (code, e))
         error_codes.add(code)
@@ -115,6 +124,6 @@ def daily_basic_to_db(today):
 def daily():
     today = datetime.datetime.now().strftime('%Y-%m-%d')
     daily_basic_to_db(today)
-    daily_data_to_db(today)
+    # daily_data_to_db(today)
 
-# daily()
+daily()
