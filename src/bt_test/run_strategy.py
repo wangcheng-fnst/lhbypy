@@ -8,6 +8,7 @@ import pandas as pd
 import src.common.constants as constants
 import strategy_result_analysis as sra
 import stock_pool as sp
+import  datetime
 
 # 测试涨停板
 import AddMorePandaFeed
@@ -37,27 +38,36 @@ def handle_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
         # 单只股票结果存库
 
 
-def test_zt(n_code=None):
+def test_zt(stock_datas, n_code=None, model='hc'):
     res = []
-    # codes = data.read_stock_code().loc[1000:1010]['code']
-    codes = data.read_hs_300_code()
+    codes = stock_datas.keys()
     if n_code:
         codes = [n_code]
-    for code in codes:
-        code = str(code)
-        stock_df = bao_stock.get_k_bao_online(code)
-        if stock_df is None:
-            continue
-        stock_df['OpenInterest'] = 0
-        stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'peTTM', 'pbMRQ']]
+    i = 0
+    for code in codes[100:150]:
+        try:
+            i += 1
+            code = str(code)
+            stock_df = stock_datas.get(code)
+            if stock_df is None:
+                continue
+            stock_df['OpenInterest'] = 0
+            stock_df = stock_df[['date', 'code', 'open', 'high', 'low', 'close', 'turn', 'pe', 'pb', 'volume', 'lb']]
 
-        strategy = st.ZTBStrategy
-        dtos = [dto.BaseStrategyDto(code, str(random.randint(1, 100)), 10000)]
-        bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
-        cerebro, analyzer_map = run.run_with_html(code, stock_df, bt_data, strategy, dtos, res)
-        stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
-        handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
-    run.res_to_file(res, 'zt')
+            strategy = st.ZTBStrategy
+            dtos = [dto.BaseStrategyDto(code, '涨停策略', 100000)]
+            bt_data = AddMorePandaFeed.AddMorePandaFees(dataname=stock_df)
+            cerebro, analyzer_map = run.run_with_html(code, stock_df, bt_data, strategy, dtos, res)
+            stock_df['base_return'] = (stock_df['close'] - stock_df.iloc[0]['close']) / stock_df.iloc[0]['close']
+            print('finished %i,%s' % (i, code))
+
+            # handle_result(cerebro, dtos, analyzer_map, stock_df['base_return'], res)
+        except Exception as e:
+            print('code=%s, e=%s' % (code, e))
+
+    if model == 'hc':
+        sra.handle_strategy_result(res, constants.get_result_path('ZTBStrategy/'))
+    return res
 
 
 def test_jx(stock_datas, n_code=None, model='hc'):
@@ -90,8 +100,9 @@ def test_jx(stock_datas, n_code=None, model='hc'):
 
 
 def run_test(strategy):
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
+    stock_datas = sp.get_all('2020-01-01', today)
     if strategy == 'jx':
-        stock_datas = sp.get_all('2020-01-01', '2022-01-01')
-        test_jx(stock_datas = stock_datas)
+        test_jx(stock_datas=stock_datas)
     if strategy == 'zt':
-        test_zt()
+        test_zt(stock_datas=stock_datas)

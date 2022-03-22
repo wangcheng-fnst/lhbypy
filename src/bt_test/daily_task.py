@@ -6,6 +6,7 @@ import datetime
 import pandas as pd
 from sqlalchemy import create_engine
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
+import run_strategy as rs
 
 
 engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:3306/stock_db')
@@ -122,8 +123,9 @@ def daily_basic_to_db(today):
 # daily_basic_tod_db('2022-03-18')
 
 def daily():
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
-    daily_basic_to_db(today)
+    # today = datetime.datetime.now().strftime('%Y-%m-%d')
+    # daily_basic_to_db(today)
     # daily_data_to_db(today)
+    rs.run_test('zt')
 
 daily()

@@ -29,6 +29,17 @@ def handle_strategy_result(res, output_file_dir):
     # top 10 排序
     top_df = out_df.sort_values(['strategy', 'win_rate', 'value'], ascending=False).groupby('strategy').head(10)
     top_df.to_csv(output_file_dir + 'top10.csv')
+    i = 0
+    for row in top_df.iterrows():
+        code = row[1]['code']
+        strategy = row[1]['strategy']
+        key = code + '-' + strategy
+        trade_detail_df = trade_detail_map.get(key)
+        if i == 0:
+            trade_detail_df.to_csv(output_file_dir + 'top10_detail.csv')
+        else:
+            trade_detail_df.to_csv(file, mode='a', header=False)
+        i += 1
 
 # 处理单个股票多个策略的结果，生成策略收益和基础收益曲线图
 def handle_single_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
