@@ -42,6 +42,7 @@ def get_all(start, end, min_trade_count=200):
                 if t.index.size >= min_trade_count:
                     t.index = pd.to_datetime(t['date'])
                     stocks.update({code: t})
+
     return stocks
 
 # 中证50
@@ -159,7 +160,7 @@ def get_all_stock_pool(start_date, end_date):
     pass
 
 # 批量补数据
-# get_all_stock_pool('2022-03-16', '2022-03-17')
+# get_all_stock_pool('2022-03-15', '2022-03-23')
 
 def get_stock_basic(code, start_date, end_date):
     try:
@@ -202,6 +203,6 @@ def write_stock_basic(start_date, end_date):
             all_tasks.clear()
 
 # 批量basic补数据
-write_stock_basic('2022-03-18','2022-03-19')
+# write_stock_basic('2022-03-18','2022-03-19')
 
 # get_all('2021-01-01','2021-02-01')

@@ -35,8 +35,9 @@ def handle_strategy_result(res, output_file_dir):
         strategy = row[1]['strategy']
         key = code + '-' + strategy
         trade_detail_df = trade_detail_map.get(key)
+        file = output_file_dir + 'top10_detail.csv'
         if i == 0:
-            trade_detail_df.to_csv(output_file_dir + 'top10_detail.csv')
+            trade_detail_df.to_csv(file)
         else:
             trade_detail_df.to_csv(file, mode='a', header=False)
         i += 1

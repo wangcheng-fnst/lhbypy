@@ -40,11 +40,11 @@ def handle_result(cerebro, strategy_dtos, analyzer_map, base_return, res):
 
 def test_zt(stock_datas, n_code=None, model='hc'):
     res = []
-    codes = stock_datas.keys()
+    codes = [c for c in stock_datas.keys()]
     if n_code:
         codes = [n_code]
     i = 0
-    for code in codes[100:150]:
+    for code in codes:
         try:
             i += 1
             code = str(code)

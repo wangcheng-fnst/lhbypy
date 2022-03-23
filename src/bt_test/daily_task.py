@@ -123,9 +123,9 @@ def daily_basic_to_db(today):
 # daily_basic_tod_db('2022-03-18')
 
 def daily():
-    # today = datetime.datetime.now().strftime('%Y-%m-%d')
+    today = datetime.datetime.now().strftime('%Y-%m-%d')
     # daily_basic_to_db(today)
-    # daily_data_to_db(today)
-    rs.run_test('zt')
+    daily_data_to_db(today)
+    # rs.run_test('zt')
 
 daily()

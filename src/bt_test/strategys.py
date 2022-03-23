@@ -280,6 +280,7 @@ class JXDTStrategy(BaseStrategy):
 
 # 涨停板策略连续n天涨停后买入，买入后开板就卖出
 # n = 2: 昨天和今天都涨停，明天如果不是一字板，开盘买入， 后天如果不是一字板，则卖出
+# todo：均线多头加涨停，第二天追
 class ZTBStrategy(BaseStrategy):
     params = dict(
         p=dto.BaseStrategyDto('600600','zt-1',10000),
@@ -292,10 +293,22 @@ class ZTBStrategy(BaseStrategy):
 
         self.cash = None
         self.end_date = self.data0.datetime.date(-1)
+        self.dataclose = self.datas[0].close
+        self.dataopen = self.datas[0].open
+        self.ma1 = bt.talib.SMA(self.dataclose, timeperiod=5)
+        self.ma2 = bt.talib.SMA(self.dataclose, timeperiod=10)
+        self.ma3 = bt.talib.SMA(self.dataclose, timeperiod=20)
+        self.ma4 = bt.talib.SMA(self.dataclose, timeperiod=30)
         # self.zt = s
 
     def notify_cashvalue(self, cash, value):
         self.cash = cash
+
+
+    def jxdt_judge(self):
+        flag = (self.ma1[0] >= self.ma2[0]) and (self.ma2[0] >= self.ma3[0]) \
+                    and (self.ma1[-1] >= self.ma2[-1]) and (self.ma2[-1] >= self.ma3[-1])
+        return flag
 
 
     def next(self):
@@ -329,6 +342,10 @@ class ZTBStrategy(BaseStrategy):
                     if not flag:
                         break
             # 达到条件了，并且不是一字涨停可以买入了
+
+            # 均线多头
+            if not self.jxdt_judge():
+                return
 
             if flag and can:
                     # 不是一字涨停，高于开盘价0.01 买入
