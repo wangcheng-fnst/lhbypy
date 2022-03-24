@@ -6,7 +6,7 @@ import datetime
 import pandas as pd
 from sqlalchemy import create_engine
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
-import stock_pool as sp
+import src.bt_test.stock_pool as sp
 
 engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:3306/stock_db')
 executor = ThreadPoolExecutor(max_workers=10)
