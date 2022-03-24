@@ -80,10 +80,10 @@ def get_value(min= 100, max= 2000):
 # 次新股池
 
 
-def get_stock_data(code, start_date, end_date):
+def get_stock_data(code, start_date, end_date, adjust='hfq'):
     start = datetime.datetime.strptime(start_date, '%Y-%m-%d')
     end = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-    stock_df = ak.stock_zh_a_hist(symbol=code, adjust='hfq', start_date=start_date, end_date=end_date)
+    stock_df = ak.stock_zh_a_hist(symbol=code, adjust=adjust, start_date=start_date, end_date=end_date)
     if stock_df.empty:
         print('+++++++code=%s is none+++++++' % code)
         return code, None
@@ -112,15 +112,18 @@ def get_stock_data(code, start_date, end_date):
     stock_df['lb'] = stock_df['volume'] / ta.SMA(stock_df['volume'], timeperiod=5)
     # print(code)
     try:
-        stock_df.to_sql('stock_data', engine, index=False, if_exists='append')
-        time.sleep(0.1)
+        if adjust == 'hfq':
+            stock_df.to_sql('stock_data', engine, index=False, if_exists='append')
+        else:
+            stock_df.to_sql('stock_daily_data', engine, index=False, if_exists='append')
+
     except Exception as e:
         print('=============insert error= %s,e=%s'% (code, e))
     return code, stock_df
 
 
 
-def get_all_stock_pool(start_date, end_date):
+def get_all_stock_pool(start_date, end_date, adjust='hfq'):
     begin = datetime.datetime.now()
     stock_datas = {}
     all_stock_df = ak.stock_zh_a_spot_em()
@@ -128,7 +131,7 @@ def get_all_stock_pool(start_date, end_date):
 
     for code in all_stock_df['代码']:
         all_tasks = []
-        all_tasks.append(executor.submit(get_stock_data, code, start_date, end_date))
+        all_tasks.append(executor.submit(get_stock_data, code, start_date, end_date, adjust))
         i += 1
         if i >= 200:
             c_b = datetime.datetime.now()

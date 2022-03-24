@@ -6,8 +6,7 @@ import datetime
 import pandas as pd
 from sqlalchemy import create_engine
 from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED, as_completed
-import run_strategy as rs
-
+import stock_pool as sp
 
 engine = create_engine('mysql+pymysql://stock_db:P4WSfPDzKL3ykbCz@42.192.15.190:3306/stock_db')
 executor = ThreadPoolExecutor(max_workers=10)
@@ -26,7 +25,7 @@ def all_to_csv():
 
 def daily_data_to_db(today):
     # 序号	代码	名称	最新价	涨跌幅	涨跌额	成交量	成交额	振幅	最高	最低	今开	昨收	量比	换手率	市盈率-动态	市净率
-
+    # sp.get_stock_data()
     all_stock_df = ak.stock_zh_a_spot_em()
 
     stock_data_df = all_stock_df[['代码', '今开', '最低', '最高', '最新价', '成交量',
@@ -46,7 +45,7 @@ def daily_data_to_db(today):
                         axis='columns')
 
     stock_data_df['date'] = today
-    stock_data_df.to_sql('stock_data', engine, index=False, if_exists='append')
+    stock_data_df.to_sql('stock_daily_data', engine, index=False, if_exists='append')
 
 
 
@@ -124,8 +123,9 @@ def daily_basic_to_db(today):
 
 def daily():
     today = datetime.datetime.now().strftime('%Y-%m-%d')
-    # daily_basic_to_db(today)
+    daily_basic_to_db(today)
     daily_data_to_db(today)
+    sp.get_all_stock_pool(today, today, 'hfq')
     # rs.run_test('zt')
 
 daily()
