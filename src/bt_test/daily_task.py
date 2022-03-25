@@ -45,8 +45,10 @@ def daily_data_to_db(today):
                         axis='columns')
 
     stock_data_df['date'] = today
-    stock_data_df.to_sql('stock_daily_data', engine, index=False, if_exists='append')
-
+    try:
+        stock_data_df.to_sql('stock_daily_data', engine, index=False, if_exists='append')
+    except Exception as e:
+        print('daily_data_to_db insert error: %s'% e)
 
 
 
@@ -56,14 +58,10 @@ def get_stock_basic(code, start_date, success_codes, error_codes):
         base_df = ak.stock_a_lg_indicator(code)
         base_df = base_df.rename({'trade_date':'date'}, axis='columns')
         base_df.index = pd.to_datetime(base_df['date'])
-        t = None
-        if base_df.index.size == 1:
-            t = base_df
-        else:
-            t = base_df.loc[start_date, ['date', 'pe', 'pe_ttm', 'total_mv',
+        t = base_df.loc[start_date, ['date', 'pe', 'pe_ttm', 'total_mv',
                                      'pb', 'ps', 'ps_ttm', 'dv_ratio', 'dv_ttm']]
         if isinstance(t, pandas.Series):
-            print('code:%s,is series' % code)
+            t = t.to_frame().transpose()
         t['code'] = code
         # print('success_codes add %s'%code)
         t.to_sql('stock_basic_data', engine, index=False, if_exists='append')

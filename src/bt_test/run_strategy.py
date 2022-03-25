@@ -44,7 +44,7 @@ def test_zt(stock_datas, n_code=None, model='hc'):
     if n_code:
         codes = [n_code]
     i = 0
-    for code in codes:
+    for code in codes[100:120]:
         try:
             i += 1
             code = str(code)
@@ -106,3 +106,5 @@ def run_test(strategy):
         test_jx(stock_datas=stock_datas)
     if strategy == 'zt':
         test_zt(stock_datas=stock_datas)
+
+run_test('zt')
