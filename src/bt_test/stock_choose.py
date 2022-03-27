@@ -1,6 +1,3 @@
-import data
-import pandas as pd
-import talib as ta
 import strategys
 import stock_pool as sp
 from src.bt_test import dto
@@ -19,7 +16,7 @@ def choose_stock(strategy,p ,today):
             if strategy.judge_stock(stock_data, p):
                 hit_codes.append(code)
     hit_stock_datas = {}
-    for c in hit_codes[100:150]:
+    for c in hit_codes:
         hit_stock_datas.update({c: stock_datas.get(c)})
     if strategy is strategys.JXDTStrategy:
         print('choose jx, data count : %i' % (len(hit_stock_datas.keys())))
