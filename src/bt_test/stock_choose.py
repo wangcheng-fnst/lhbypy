@@ -1,14 +1,12 @@
-import strategys
-import stock_pool as sp
-from src.bt_test import dto
-import run_strategy as rs
-import strategy_result_analysis as sra
+from src.bt_test import dto, strategys, stock_pool
+import src.bt_test.run_strategy as rs
+import src.bt_test.strategy_result_analysis as sra
 import src.common.constants as constants
 
 # 使用最近一年的数据来筛选
 def choose_stock(strategy,p ,today):
     # all code
-    stock_datas = sp.get_all('2021-01-01', today)
+    stock_datas = stock_pool.get_all('2021-01-01', today)
     hit_codes = []
     for code in stock_datas.keys():
         stock_data = stock_datas.get(code)
