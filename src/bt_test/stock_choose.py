@@ -25,4 +25,4 @@ def choose_stock(strategy,p ,today):
 
 
 
-choose_stock(strategys.JXDTStrategy,dto.JXDto('', 5, 10, 20, 180, '均线-1', 100000),'2022-03-19')
+# choose_stock(strategys.JXDTStrategy,dto.JXDto('', 5, 10, 20, 180, '均线-1', 100000),'2022-03-19')

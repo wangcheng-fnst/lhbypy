@@ -41,6 +41,8 @@ def handle_strategy_result(res, output_file_dir):
         else:
             trade_detail_df.to_csv(file, mode='a', header=False)
         i += 1
+    print('choose finish path=%s' % output_file_dir)
+
 
 # 处理单个股票多个策略的结果，生成策略收益和基础收益曲线图
 def handle_single_result(cerebro, strategy_dtos, analyzer_map, base_return, res):

@@ -1,18 +1,24 @@
+from concurrent.futures import ThreadPoolExecutor,wait,ALL_COMPLETED
+import tushare as tu
 import pandas as pd
-import dto
+import datetime
+import bao_stock
+
+executor = ThreadPoolExecutor(max_workers=1)
+
+def task(code, stock_data):
+    df = bao_stock.get_k_bao_online(code)
+    stock_data.update({code: df})
+
+stock_codes = pd.read_csv('stock.csv')
+stock_codes = stock_codes['code'].iloc[2000:2100]
+stock_data ={}
 
 
-res = []
-for i in range(1,10):
-    res.append(dto.BtResultDto(i,i,i,i,i))
-out_df = pd.DataFrame(columns=['code','summary','win_count','lose_count','trade_count'])
 
-codes = [r.code for r in res]
-summaries = [r.summary for r in res]
-win_counts = [r.win_count for r in res]
-lose_counts = [r.lose_count for r in res]
-trade_counts = [r.trade_count for r in res]
-
-df = pd.DataFrame(list(zip(codes,summaries, win_counts,lose_counts,trade_counts)),
-                  columns=['code','summary','win_count','lose_count','trade_count'])
-print(df)
+begin = datetime.datetime.now()
+all_task = [executor.submit(task, str(code), stock_data) for code in stock_codes]
+wait(all_task, return_when=ALL_COMPLETED)
+end = datetime.datetime.now()
+cost = (end -begin).seconds
+print('cost %i' % (cost))

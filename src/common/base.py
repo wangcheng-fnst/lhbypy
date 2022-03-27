@@ -14,9 +14,11 @@ from pylab import mpl
 mpl.rcParams['font.sans-serif'] = ['SimHei']
 mpl.rcParams['axes.unicode_minus'] = False
 # 设置token
-# token = '5c504ff69b5898f3db86ce4830f030c4801d15dd77fb0a213ad349b6'
-# ts.set_token(token)
-# pro = ts.pro_api()
+token = '5c504ff69b5898f3db86ce4830f030c4801d15dd77fb0a213ad349b6'
+ts.set_token(token)
+pro = ts.pro_api()
+df = pro.daily_basic(ts_code='000001',fields='trade_date,turnover_rate,pe,pb')
+
 engine = create_engine('mysql+pymysql://root:Root@123456@42.192.15.190:3306/db')
 
 
