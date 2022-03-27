@@ -2,7 +2,7 @@ import backtrader as bt
 import pandas as pd
 import os
 from backtrader_plotting import Bokeh
-import analyzers
+from src.bt_test import analyzers
 
 html_path = '../../work/html/'
 csv_path = '../../work/csv/'

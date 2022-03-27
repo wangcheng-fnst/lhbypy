@@ -1,19 +1,17 @@
-import random
-import run
-import dto
-import strategys as st
-import data
-import bao_stock
+from src.bt_test import run
+import src.bt_test.strategys as st
 import pandas as pd
 import src.common.constants as constants
-import strategy_result_analysis as sra
-import stock_pool as sp
-import  datetime
+from src.bt_test import strategy_result_analysis as sra
+from src.bt_test import stock_pool as sp
+import datetime
 
 # 测试涨停板
-import AddMorePandaFeed
+from src.bt_test import AddMorePandaFeed
 
 import matplotlib as mpl
+
+from src.bt_test import dto
 
 mpl.rcParams['font.family']='PingFang HK'
 mpl.rcParams['axes.unicode_minus']=False
@@ -106,5 +104,6 @@ def run_test(strategy):
         test_jx(stock_datas=stock_datas)
     if strategy == 'zt':
         test_zt(stock_datas=stock_datas)
-
-run_test('zt')
+    if strategy == 'all':
+        test_jx(stock_datas=stock_datas)
+        test_zt(stock_datas=stock_datas)
